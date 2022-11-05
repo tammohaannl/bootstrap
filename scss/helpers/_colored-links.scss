@@ -1,11 +1,11 @@
 @each $color, $value in $theme-colors {
   .link-#{$color} {
-    color: $value;
+    color: $value if($enable-important-utilities, !important, null);
 
-    @if $emphasized-link-hover-darken-percentage != 0 {
+    @if $link-shade-percentage != 0 {
       &:hover,
       &:focus {
-        color: darken($value, $emphasized-link-hover-darken-percentage);
+        color: if(color-contrast($value) == $color-contrast-light, shade-color($value, $link-shade-percentage), tint-color($value, $link-shade-percentage)) if($enable-important-utilities, !important, null);
       }
     }
   }

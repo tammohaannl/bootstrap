@@ -1,220 +1,82 @@
 /*!
-  * Bootstrap button.js v5.0.0-alpha1 (https://getbootstrap.com/)
-  * Copyright 2011-2020 The Bootstrap Authors (https://github.com/twbs/bootstrap/graphs/contributors)
-  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+  * Bootstrap button.js v5.2.2 (https://getbootstrap.com/)
+  * Copyright 2011-2022 The Bootstrap Authors (https://github.com/twbs/bootstrap/graphs/contributors)
+  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
   */
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('./dom/data.js'), require('./dom/event-handler.js'), require('./dom/selector-engine.js')) :
-  typeof define === 'function' && define.amd ? define(['./dom/data.js', './dom/event-handler.js', './dom/selector-engine.js'], factory) :
-  (global = global || self, global.Button = factory(global.Data, global.EventHandler, global.SelectorEngine));
-}(this, (function (Data, EventHandler, SelectorEngine) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('./util/index'), require('./dom/event-handler'), require('./base-component')) :
+  typeof define === 'function' && define.amd ? define(['./util/index', './dom/event-handler', './base-component'], factory) :
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.Button = factory(global.Index, global.EventHandler, global.BaseComponent));
+})(this, (function (index, EventHandler, BaseComponent) { 'use strict';
 
-  Data = Data && Object.prototype.hasOwnProperty.call(Data, 'default') ? Data['default'] : Data;
-  EventHandler = EventHandler && Object.prototype.hasOwnProperty.call(EventHandler, 'default') ? EventHandler['default'] : EventHandler;
-  SelectorEngine = SelectorEngine && Object.prototype.hasOwnProperty.call(SelectorEngine, 'default') ? SelectorEngine['default'] : SelectorEngine;
+  const _interopDefaultLegacy = e => e && typeof e === 'object' && 'default' in e ? e : { default: e };
 
-  function _defineProperties(target, props) {
-    for (var i = 0; i < props.length; i++) {
-      var descriptor = props[i];
-      descriptor.enumerable = descriptor.enumerable || false;
-      descriptor.configurable = true;
-      if ("value" in descriptor) descriptor.writable = true;
-      Object.defineProperty(target, descriptor.key, descriptor);
-    }
-  }
-
-  function _createClass(Constructor, protoProps, staticProps) {
-    if (protoProps) _defineProperties(Constructor.prototype, protoProps);
-    if (staticProps) _defineProperties(Constructor, staticProps);
-    return Constructor;
-  }
+  const EventHandler__default = /*#__PURE__*/_interopDefaultLegacy(EventHandler);
+  const BaseComponent__default = /*#__PURE__*/_interopDefaultLegacy(BaseComponent);
 
   /**
    * --------------------------------------------------------------------------
-   * Bootstrap (v5.0.0-alpha1): util/index.js
-   * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+   * Bootstrap (v5.2.2): button.js
+   * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
    * --------------------------------------------------------------------------
    */
-
-  var getjQuery = function getjQuery() {
-    var _window = window,
-        jQuery = _window.jQuery;
-
-    if (jQuery && !document.body.hasAttribute('data-no-jquery')) {
-      return jQuery;
-    }
-
-    return null;
-  };
-
   /**
-   * ------------------------------------------------------------------------
    * Constants
-   * ------------------------------------------------------------------------
    */
 
-  var NAME = 'button';
-  var VERSION = '5.0.0-alpha1';
-  var DATA_KEY = 'bs.button';
-  var EVENT_KEY = "." + DATA_KEY;
-  var DATA_API_KEY = '.data-api';
-  var CLASS_NAME_ACTIVE = 'active';
-  var CLASS_NAME_DISABLED = 'disabled';
-  var CLASS_NAME_FOCUS = 'focus';
-  var SELECTOR_DATA_TOGGLE_CARROT = '[data-toggle^="button"]';
-  var SELECTOR_DATA_TOGGLE = '[data-toggle="buttons"]';
-  var SELECTOR_INPUT = 'input:not([type="hidden"])';
-  var SELECTOR_ACTIVE = '.active';
-  var SELECTOR_BUTTON = '.btn';
-  var EVENT_CLICK_DATA_API = "click" + EVENT_KEY + DATA_API_KEY;
-  var EVENT_FOCUS_DATA_API = "focus" + EVENT_KEY + DATA_API_KEY;
-  var EVENT_BLUR_DATA_API = "blur" + EVENT_KEY + DATA_API_KEY;
+  const NAME = 'button';
+  const DATA_KEY = 'bs.button';
+  const EVENT_KEY = `.${DATA_KEY}`;
+  const DATA_API_KEY = '.data-api';
+  const CLASS_NAME_ACTIVE = 'active';
+  const SELECTOR_DATA_TOGGLE = '[data-bs-toggle="button"]';
+  const EVENT_CLICK_DATA_API = `click${EVENT_KEY}${DATA_API_KEY}`;
   /**
-   * ------------------------------------------------------------------------
-   * Class Definition
-   * ------------------------------------------------------------------------
+   * Class definition
    */
 
-  var Button = /*#__PURE__*/function () {
-    function Button(element) {
-      this._element = element;
-      Data.setData(element, DATA_KEY, this);
-    } // Getters
+  class Button extends BaseComponent__default.default {
+    // Getters
+    static get NAME() {
+      return NAME;
+    } // Public
 
 
-    var _proto = Button.prototype;
-
-    // Public
-    _proto.toggle = function toggle() {
-      var triggerChangeEvent = true;
-      var addAriaPressed = true;
-
-      var rootElement = this._element.closest(SELECTOR_DATA_TOGGLE);
-
-      if (rootElement) {
-        var input = SelectorEngine.findOne(SELECTOR_INPUT, this._element);
-
-        if (input && input.type === 'radio') {
-          if (input.checked && this._element.classList.contains(CLASS_NAME_ACTIVE)) {
-            triggerChangeEvent = false;
-          } else {
-            var activeElement = SelectorEngine.findOne(SELECTOR_ACTIVE, rootElement);
-
-            if (activeElement) {
-              activeElement.classList.remove(CLASS_NAME_ACTIVE);
-            }
-          }
-
-          if (triggerChangeEvent) {
-            if (input.hasAttribute('disabled') || rootElement.hasAttribute('disabled') || input.classList.contains(CLASS_NAME_DISABLED) || rootElement.classList.contains(CLASS_NAME_DISABLED)) {
-              return;
-            }
-
-            input.checked = !this._element.classList.contains(CLASS_NAME_ACTIVE);
-            EventHandler.trigger(input, 'change');
-          }
-
-          input.focus();
-          addAriaPressed = false;
-        }
-      }
-
-      if (addAriaPressed) {
-        this._element.setAttribute('aria-pressed', !this._element.classList.contains(CLASS_NAME_ACTIVE));
-      }
-
-      if (triggerChangeEvent) {
-        this._element.classList.toggle(CLASS_NAME_ACTIVE);
-      }
-    };
-
-    _proto.dispose = function dispose() {
-      Data.removeData(this._element, DATA_KEY);
-      this._element = null;
+    toggle() {
+      // Toggle class and sync the `aria-pressed` attribute with the return value of the `.toggle()` method
+      this._element.setAttribute('aria-pressed', this._element.classList.toggle(CLASS_NAME_ACTIVE));
     } // Static
-    ;
 
-    Button.jQueryInterface = function jQueryInterface(config) {
+
+    static jQueryInterface(config) {
       return this.each(function () {
-        var data = Data.getData(this, DATA_KEY);
-
-        if (!data) {
-          data = new Button(this);
-        }
+        const data = Button.getOrCreateInstance(this);
 
         if (config === 'toggle') {
           data[config]();
         }
       });
-    };
+    }
 
-    Button.getInstance = function getInstance(element) {
-      return Data.getData(element, DATA_KEY);
-    };
-
-    _createClass(Button, null, [{
-      key: "VERSION",
-      get: function get() {
-        return VERSION;
-      }
-    }]);
-
-    return Button;
-  }();
+  }
   /**
-   * ------------------------------------------------------------------------
-   * Data Api implementation
-   * ------------------------------------------------------------------------
+   * Data API implementation
    */
 
 
-  EventHandler.on(document, EVENT_CLICK_DATA_API, SELECTOR_DATA_TOGGLE_CARROT, function (event) {
+  EventHandler__default.default.on(document, EVENT_CLICK_DATA_API, SELECTOR_DATA_TOGGLE, event => {
     event.preventDefault();
-    var button = event.target.closest(SELECTOR_BUTTON);
-    var data = Data.getData(button, DATA_KEY);
-
-    if (!data) {
-      data = new Button(button);
-    }
-
+    const button = event.target.closest(SELECTOR_DATA_TOGGLE);
+    const data = Button.getOrCreateInstance(button);
     data.toggle();
   });
-  EventHandler.on(document, EVENT_FOCUS_DATA_API, SELECTOR_DATA_TOGGLE_CARROT, function (event) {
-    var button = event.target.closest(SELECTOR_BUTTON);
-
-    if (button) {
-      button.classList.add(CLASS_NAME_FOCUS);
-    }
-  });
-  EventHandler.on(document, EVENT_BLUR_DATA_API, SELECTOR_DATA_TOGGLE_CARROT, function (event) {
-    var button = event.target.closest(SELECTOR_BUTTON);
-
-    if (button) {
-      button.classList.remove(CLASS_NAME_FOCUS);
-    }
-  });
-  var $ = getjQuery();
   /**
-   * ------------------------------------------------------------------------
    * jQuery
-   * ------------------------------------------------------------------------
-   * add .button to jQuery only if jQuery is present
    */
 
-  /* istanbul ignore if */
-
-  if ($) {
-    var JQUERY_NO_CONFLICT = $.fn[NAME];
-    $.fn[NAME] = Button.jQueryInterface;
-    $.fn[NAME].Constructor = Button;
-
-    $.fn[NAME].noConflict = function () {
-      $.fn[NAME] = JQUERY_NO_CONFLICT;
-      return Button.jQueryInterface;
-    };
-  }
+  index.defineJQueryPlugin(Button);
 
   return Button;
 
-})));
+}));
 //# sourceMappingURL=button.js.map

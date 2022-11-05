@@ -1,7 +1,5 @@
 import Manipulator from '../../../src/dom/manipulator'
-
-/** Test helpers */
-import { getFixture, clearFixture } from '../../helpers/fixture'
+import { clearFixture, getFixture } from '../../helpers/fixture'
 
 describe('Manipulator', () => {
   let fixtureEl
@@ -15,13 +13,13 @@ describe('Manipulator', () => {
   })
 
   describe('setDataAttribute', () => {
-    it('should set data attribute', () => {
+    it('should set data attribute prefixed with bs', () => {
       fixtureEl.innerHTML = '<div></div>'
 
       const div = fixtureEl.querySelector('div')
 
       Manipulator.setDataAttribute(div, 'key', 'value')
-      expect(div.getAttribute('data-key')).toEqual('value')
+      expect(div.getAttribute('data-bs-key')).toEqual('value')
     })
 
     it('should set data attribute in kebab case', () => {
@@ -30,59 +28,74 @@ describe('Manipulator', () => {
       const div = fixtureEl.querySelector('div')
 
       Manipulator.setDataAttribute(div, 'testKey', 'value')
-      expect(div.getAttribute('data-test-key')).toEqual('value')
+      expect(div.getAttribute('data-bs-test-key')).toEqual('value')
     })
   })
 
   describe('removeDataAttribute', () => {
-    it('should remove data attribute', () => {
-      fixtureEl.innerHTML = '<div data-key="value"></div>'
+    it('should only remove bs-prefixed data attribute', () => {
+      fixtureEl.innerHTML = '<div data-bs-key="value" data-key-bs="postfixed" data-key="value"></div>'
 
       const div = fixtureEl.querySelector('div')
 
       Manipulator.removeDataAttribute(div, 'key')
-      expect(div.getAttribute('data-key')).toBeNull()
+      expect(div.getAttribute('data-bs-key')).toBeNull()
+      expect(div.getAttribute('data-key-bs')).toEqual('postfixed')
+      expect(div.getAttribute('data-key')).toEqual('value')
     })
 
     it('should remove data attribute in kebab case', () => {
-      fixtureEl.innerHTML = '<div data-test-key="value"></div>'
+      fixtureEl.innerHTML = '<div data-bs-test-key="value"></div>'
 
       const div = fixtureEl.querySelector('div')
 
       Manipulator.removeDataAttribute(div, 'testKey')
-      expect(div.getAttribute('data-test-key')).toBeNull()
+      expect(div.getAttribute('data-bs-test-key')).toBeNull()
     })
   })
 
   describe('getDataAttributes', () => {
-    it('should return empty object for null', () => {
-      expect(Manipulator.getDataAttributes(null), {})
+    it('should return an empty object for null', () => {
+      expect(Manipulator.getDataAttributes(null)).toEqual({})
       expect().nothing()
     })
 
-    it('should get all data attributes', () => {
-      fixtureEl.innerHTML = '<div data-test="js" data-test2="js2" ></div>'
+    it('should get only bs-prefixed data attributes without bs namespace', () => {
+      fixtureEl.innerHTML = '<div data-bs-toggle="tabs" data-bs-target="#element" data-another="value" data-target-bs="#element" data-in-bs-out="in-between"></div>'
 
       const div = fixtureEl.querySelector('div')
 
       expect(Manipulator.getDataAttributes(div)).toEqual({
-        test: 'js',
-        test2: 'js2'
+        toggle: 'tabs',
+        target: '#element'
+      })
+    })
+
+    it('should omit `bs-config` data attribute', () => {
+      fixtureEl.innerHTML = '<div data-bs-toggle="tabs" data-bs-target="#element" data-bs-config=\'{"testBool":false}\'></div>'
+
+      const div = fixtureEl.querySelector('div')
+
+      expect(Manipulator.getDataAttributes(div)).toEqual({
+        toggle: 'tabs',
+        target: '#element'
       })
     })
   })
 
   describe('getDataAttribute', () => {
-    it('should get data attribute', () => {
-      fixtureEl.innerHTML = '<div data-test="null" ></div>'
+    it('should only get bs-prefixed data attribute', () => {
+      fixtureEl.innerHTML = '<div data-bs-key="value" data-test-bs="postFixed" data-toggle="tab"></div>'
 
       const div = fixtureEl.querySelector('div')
 
+      expect(Manipulator.getDataAttribute(div, 'key')).toEqual('value')
       expect(Manipulator.getDataAttribute(div, 'test')).toBeNull()
+      expect(Manipulator.getDataAttribute(div, 'toggle')).toBeNull()
     })
 
     it('should get data attribute in kebab case', () => {
-      fixtureEl.innerHTML = '<div data-test-key="value" ></div>'
+      fixtureEl.innerHTML = '<div data-bs-test-key="value" ></div>'
 
       const div = fixtureEl.querySelector('div')
 
@@ -90,69 +103,33 @@ describe('Manipulator', () => {
     })
 
     it('should normalize data', () => {
-      fixtureEl.innerHTML = '<div data-test="false" ></div>'
+      fixtureEl.innerHTML = '<div data-bs-test="false" ></div>'
 
       const div = fixtureEl.querySelector('div')
 
-      expect(Manipulator.getDataAttribute(div, 'test')).toEqual(false)
+      expect(Manipulator.getDataAttribute(div, 'test')).toBeFalse()
 
-      div.setAttribute('data-test', 'true')
-      expect(Manipulator.getDataAttribute(div, 'test')).toEqual(true)
+      div.setAttribute('data-bs-test', 'true')
+      expect(Manipulator.getDataAttribute(div, 'test')).toBeTrue()
 
-      div.setAttribute('data-test', '1')
+      div.setAttribute('data-bs-test', '1')
       expect(Manipulator.getDataAttribute(div, 'test')).toEqual(1)
     })
-  })
 
-  describe('offset', () => {
-    it('should return object with two properties top and left, both numbers', () => {
-      fixtureEl.innerHTML = '<div></div>'
-
-      const div = fixtureEl.querySelector('div')
-      const offset = Manipulator.offset(div)
-
-      expect(offset).toBeDefined()
-      expect(offset.top).toEqual(jasmine.any(Number))
-      expect(offset.left).toEqual(jasmine.any(Number))
-    })
-  })
-
-  describe('position', () => {
-    it('should return object with two properties top and left, both numbers', () => {
-      fixtureEl.innerHTML = '<div></div>'
-
-      const div = fixtureEl.querySelector('div')
-      const position = Manipulator.position(div)
-
-      expect(position).toBeDefined()
-      expect(position.top).toEqual(jasmine.any(Number))
-      expect(position.left).toEqual(jasmine.any(Number))
-    })
-  })
-
-  describe('toggleClass', () => {
-    it('should not error out if element is null or undefined', () => {
-      Manipulator.toggleClass(null, 'test')
-      Manipulator.toggleClass(undefined, 'test')
-      expect().nothing()
-    })
-
-    it('should add class if it is missing', () => {
-      fixtureEl.innerHTML = '<div></div>'
+    it('should normalize json data', () => {
+      fixtureEl.innerHTML = '<div data-bs-test=\'{"delay":{"show":100,"hide":10}}\'></div>'
 
       const div = fixtureEl.querySelector('div')
 
-      Manipulator.toggleClass(div, 'test')
-      expect(div.classList.contains('test')).toEqual(true)
-    })
+      expect(Manipulator.getDataAttribute(div, 'test')).toEqual({ delay: { show: 100, hide: 10 } })
 
-    it('should remove class if it is set', () => {
-      fixtureEl.innerHTML = '<div class="test"></div>'
+      const objectData = { 'Super Hero': ['Iron Man', 'Super Man'], testNum: 90, url: 'http://localhost:8080/test?foo=bar' }
+      const dataStr = JSON.stringify(objectData)
+      div.setAttribute('data-bs-test', encodeURIComponent(dataStr))
+      expect(Manipulator.getDataAttribute(div, 'test')).toEqual(objectData)
 
-      const div = fixtureEl.querySelector('div')
-
-      Manipulator.toggleClass(div, 'test')
-      expect(div.classList.contains('test')).toEqual(false)
+      div.setAttribute('data-bs-test', dataStr)
+      expect(Manipulator.getDataAttribute(div, 'test')).toEqual(objectData)
     })
   })
 })

@@ -1,72 +1,51 @@
 /*!
-  * Bootstrap selector-engine.js v5.0.0-alpha1 (https://getbootstrap.com/)
-  * Copyright 2011-2020 The Bootstrap Authors (https://github.com/twbs/bootstrap/graphs/contributors)
-  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+  * Bootstrap selector-engine.js v5.2.2 (https://getbootstrap.com/)
+  * Copyright 2011-2022 The Bootstrap Authors (https://github.com/twbs/bootstrap/graphs/contributors)
+  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
   */
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('./polyfill.js')) :
-  typeof define === 'function' && define.amd ? define(['./polyfill.js'], factory) :
-  (global = global || self, global.SelectorEngine = factory(global.Polyfill));
-}(this, (function (polyfill_js) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('../util/index')) :
+  typeof define === 'function' && define.amd ? define(['../util/index'], factory) :
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.SelectorEngine = factory(global.Index));
+})(this, (function (index) { 'use strict';
 
   /**
    * --------------------------------------------------------------------------
-   * Bootstrap (v5.0.0-alpha1): dom/selector-engine.js
-   * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+   * Bootstrap (v5.2.2): dom/selector-engine.js
+   * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
    * --------------------------------------------------------------------------
    */
   /**
-   * ------------------------------------------------------------------------
    * Constants
-   * ------------------------------------------------------------------------
    */
 
-  var NODE_TEXT = 3;
-  var SelectorEngine = {
-    matches: function matches(element, selector) {
-      return element.matches(selector);
+  const SelectorEngine = {
+    find(selector, element = document.documentElement) {
+      return [].concat(...Element.prototype.querySelectorAll.call(element, selector));
     },
-    find: function find(selector, element) {
-      var _ref;
 
-      if (element === void 0) {
-        element = document.documentElement;
-      }
-
-      return (_ref = []).concat.apply(_ref, polyfill_js.find.call(element, selector));
+    findOne(selector, element = document.documentElement) {
+      return Element.prototype.querySelector.call(element, selector);
     },
-    findOne: function findOne(selector, element) {
-      if (element === void 0) {
-        element = document.documentElement;
-      }
 
-      return polyfill_js.findOne.call(element, selector);
+    children(element, selector) {
+      return [].concat(...element.children).filter(child => child.matches(selector));
     },
-    children: function children(element, selector) {
-      var _ref2;
 
-      var children = (_ref2 = []).concat.apply(_ref2, element.children);
+    parents(element, selector) {
+      const parents = [];
+      let ancestor = element.parentNode.closest(selector);
 
-      return children.filter(function (child) {
-        return child.matches(selector);
-      });
-    },
-    parents: function parents(element, selector) {
-      var parents = [];
-      var ancestor = element.parentNode;
-
-      while (ancestor && ancestor.nodeType === Node.ELEMENT_NODE && ancestor.nodeType !== NODE_TEXT) {
-        if (this.matches(ancestor, selector)) {
-          parents.push(ancestor);
-        }
-
-        ancestor = ancestor.parentNode;
+      while (ancestor) {
+        parents.push(ancestor);
+        ancestor = ancestor.parentNode.closest(selector);
       }
 
       return parents;
     },
-    prev: function prev(element, selector) {
-      var previous = element.previousElementSibling;
+
+    prev(element, selector) {
+      let previous = element.previousElementSibling;
 
       while (previous) {
         if (previous.matches(selector)) {
@@ -78,11 +57,13 @@
 
       return [];
     },
-    next: function next(element, selector) {
-      var next = element.nextElementSibling;
+
+    // TODO: this is now unused; remove later along with prev()
+    next(element, selector) {
+      let next = element.nextElementSibling;
 
       while (next) {
-        if (this.matches(next, selector)) {
+        if (next.matches(selector)) {
           return [next];
         }
 
@@ -90,10 +71,16 @@
       }
 
       return [];
+    },
+
+    focusableChildren(element) {
+      const focusables = ['a', 'button', 'input', 'textarea', 'select', 'details', '[tabindex]', '[contenteditable="true"]'].map(selector => `${selector}:not([tabindex^="-"])`).join(',');
+      return this.find(focusables, element).filter(el => !index.isDisabled(el) && index.isVisible(el));
     }
+
   };
 
   return SelectorEngine;
 
-})));
+}));
 //# sourceMappingURL=selector-engine.js.map

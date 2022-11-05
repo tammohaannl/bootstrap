@@ -1,50 +1,36 @@
 /**
  * --------------------------------------------------------------------------
- * Bootstrap (v5.0.0-alpha1): dom/selector-engine.js
- * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ * Bootstrap (v5.2.2): dom/selector-engine.js
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
  * --------------------------------------------------------------------------
  */
 
-import { find as findFn, findOne } from './polyfill'
+import { isDisabled, isVisible } from '../util/index.js'
 
 /**
- * ------------------------------------------------------------------------
  * Constants
- * ------------------------------------------------------------------------
  */
 
-const NODE_TEXT = 3
-
 const SelectorEngine = {
-  matches(element, selector) {
-    return element.matches(selector)
-  },
-
   find(selector, element = document.documentElement) {
-    return [].concat(...findFn.call(element, selector))
+    return [].concat(...Element.prototype.querySelectorAll.call(element, selector))
   },
 
   findOne(selector, element = document.documentElement) {
-    return findOne.call(element, selector)
+    return Element.prototype.querySelector.call(element, selector)
   },
 
   children(element, selector) {
-    const children = [].concat(...element.children)
-
-    return children.filter(child => child.matches(selector))
+    return [].concat(...element.children).filter(child => child.matches(selector))
   },
 
   parents(element, selector) {
     const parents = []
+    let ancestor = element.parentNode.closest(selector)
 
-    let ancestor = element.parentNode
-
-    while (ancestor && ancestor.nodeType === Node.ELEMENT_NODE && ancestor.nodeType !== NODE_TEXT) {
-      if (this.matches(ancestor, selector)) {
-        parents.push(ancestor)
-      }
-
-      ancestor = ancestor.parentNode
+    while (ancestor) {
+      parents.push(ancestor)
+      ancestor = ancestor.parentNode.closest(selector)
     }
 
     return parents
@@ -63,12 +49,12 @@ const SelectorEngine = {
 
     return []
   },
-
+  // TODO: this is now unused; remove later along with prev()
   next(element, selector) {
     let next = element.nextElementSibling
 
     while (next) {
-      if (this.matches(next, selector)) {
+      if (next.matches(selector)) {
         return [next]
       }
 
@@ -76,6 +62,21 @@ const SelectorEngine = {
     }
 
     return []
+  },
+
+  focusableChildren(element) {
+    const focusables = [
+      'a',
+      'button',
+      'input',
+      'textarea',
+      'select',
+      'details',
+      '[tabindex]',
+      '[contenteditable="true"]'
+    ].map(selector => `${selector}:not([tabindex^="-"])`).join(',')
+
+    return this.find(focusables, element).filter(el => !isDisabled(el) && isVisible(el))
   }
 }
 
